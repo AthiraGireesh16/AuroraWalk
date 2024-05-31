@@ -14,7 +14,7 @@ module.exports ={
             const {search , sortData , sortOrder} = req.query
             let page = Number(req.query.page)
             if(isNaN(page) || page < 1){
-                pagee = 1;
+                page = 1;
             }
 
             const condition = {}
