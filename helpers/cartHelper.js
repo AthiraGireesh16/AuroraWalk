@@ -45,7 +45,7 @@ async function calculateOrderedQuantity(productId){
         totalCartPrice : async (user)=>{
             try{
                 const totalPrice = await cartSchema.aggregate([
-                    // Matching the cart for a specific user
+                // Matching the cart for a specific user
                 { $match: { userId: mongoose.Types.ObjectId.createFromHexString(user) } },
                 // Unwinding the items array
                 { $unwind: "$items" },
