@@ -1,0 +1,166 @@
+<%- include('../includes/userHead.ejs') %>
+<%- include('../includes/userNavbar.ejs') %>
+
+<style>
+  /* General Styles */
+  .main-container {
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 120px; /* Adjust this value if necessary to avoid overlap with navbar */
+  }
+
+  /* Table Container Styles */
+  .table-container {
+    width: 80%;
+  }
+
+  /* Table Styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f5f5f5;
+  }
+
+  tr:hover {
+    background-color: #f2f2f2;
+  }
+
+  /* Button Styles */
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+  }
+
+  /* Alert Styles */
+  .swal2-popup {
+    font-size: 16px;
+  }
+</style>
+
+<div class="main-container">
+  <div class="table-container">
+    <% if(orders && orders.length > 0){ %>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let order of orders) { %>
+            <tr>
+              <td><%= moment(order.date).format(shortDateFormat) %></td>
+              <td><%= order.totalPrice %></td>
+              <td id="order-status-<%= order._id %>"><%= order.orderStatus %></td>
+              <td>
+                <% if (order.orderStatus === 'Delivered' || order.orderStatus === 'Cancelled' || order.orderStatus === 'Returned') { %>
+                  <!-- No action available -->
+                <% } else { %>
+                  <button class="btn btn-danger" onclick="cancelOrder('<%= order._id %>')">Cancel</button>
+                <% } %>
+
+                <% if(order.orderStatus === 'Delivered') { %>
+                  <% var timeDiff = now - order.date; %>
+                  <% var days = timeDiff / (1000 * 60 * 60 * 24); %>
+                  <% if (days < 30) { %>
+                    <button class="btn btn-primary" onclick="confirmReturn('<%= order._id %>')">Return</button>
+                  <% } %>
+                <% } %>
+
+                <a class="btn btn-dark" href="/user/view-order-products/<%= order._id %>">View Products</a>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <div class="text-center">
+        <h2>No Orders Found</h2>
+        <p>Start shopping now!</p>
+        <a href="/shop" class="btn btn-primary">Shop Now</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  async function cancelOrder(orderId) {
+    try {
+      const { value: confirmed } = await Swal.fire({
+        title: 'Cancel Order',
+        text: 'Are you sure you want to cancel this order?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, cancel it!'
+      });
+
+      if (confirmed) {
+        const status = 'Cancelled';
+        const cancel = await axios.patch('/user/cancel-order', { orderId, status });
+
+        if (cancel.data.success) {
+          const cancelButton = document.getElementById(`cancel-${orderId}`);
+          const orderStatus = document.getElementById(`order-status-${orderId}`);
+          cancelButton.style.display = 'none';
+          orderStatus.innerHTML = cancel.data.status;
+          Swal.fire({
+            icon: 'success',
+            title: 'Order Cancelled',
+            text: 'The order has been successfully cancelled!'
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  function confirmReturn(orderId) {
+    Swal.fire({
+      title: 'Return Order',
+      text: 'Are you sure you want to return this order?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, return it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = `/user/getReturn/${orderId}`;
+      }
+    });
+  }
+</script>
+
+<%- include('../includes/userFooter.ejs') %>
+<%- include('../includes/end.ejs') %>

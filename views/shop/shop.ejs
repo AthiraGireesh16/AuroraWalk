@@ -1,0 +1,384 @@
+<%- include('../includes/userHead.ejs') %>
+<%- include('../includes/userNavbar.ejs') %>
+
+<style>
+    /* Example CSS for the suggestion list */
+    #suggestionsList {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #ccc;
+        position: absolute;
+        background-color: #fff;
+        width: 100%;
+        max-height: 150px;
+        overflow-y: auto;
+        display: none;
+        z-index: 100;
+    }
+
+    #suggestionsList li {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    #suggestionsList li:hover {
+        background-color: #f2f2f2;
+    }
+</style>
+
+<!-- Shop Section Begin -->
+<section class="shop spad mt-5">
+    <div class="container">
+
+        <div class="row">
+            <!-- Sidebar Section Begin -->
+            <div class="col-lg-3">
+                <div class="shop__sidebar">
+                    <div class="shop__sidebar__search">
+                        <form action="/shop?" method="get">
+                            <div class="searchContainer">
+                                <input type="text" name="search" placeholder="Search..." value="<%= search %>" oninput="searchfunction()" id="search-field" autocomplete="off">
+                                <input type="hidden" value="<%= cat %>" name="cat">
+                                <button type="submit"><span class="icon_search"></span></button>
+                            </div>
+                            <ul id="suggestionsList"></ul>
+                        </form>
+                    </div>
+                    <div class="shop__sidebar__accordion">
+                        <div class="accordion" id="accordionExample">
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseOne">Categories</a>
+                                </div>
+                                <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories">
+                                            <ul class="nice-scroll">
+                                                <li><a href="/shop?<% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>">All</a></li>
+                                                <% for( let item of category ) { %>
+                                                    <li><a href="/shop?cat=<%= item._id %><% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>"><%= item.category %></a></li>
+                                                <% } %>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseTwo">Branding</a>
+                                </div>
+                                <div id="collapseTwo" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__brand">
+                                            <ul>
+                                                <li><a href="shop?<% if ( cat ) { %>&&cat=<%= cat %><% } %><% if (search){%>&search=<%= search %><% } %>">All</a></li>
+                                                <% for( let item of brands ) { %>
+                                                    <li><a href="shop?brand=<%= item._id %><% if ( cat ) { %>&&cat=<%= cat %><% } %><% if (search){%>&search=<%= search %><% } %>"><%= item.brand %></a></li>
+                                                <% } %>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sidebar Section End -->
+
+            <!-- Products Section Begin -->
+            <div class="col-lg-9">
+                <div class="shop__product__option">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div class="shop__product__option__right">
+                                <label for="sortPrice">Price:</label>
+                                <select id="sortPrice" onchange="sortProductsByPrice(this.value)">
+                                    <option value="low_to_high">Low to High</option>
+                                    <option value="high_to_low">High to Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div class="shop__product__option__right">
+                                <label for="sortName">Name:</label>
+                                <select id="sortName" onchange="sortProductsByName(this.value)">
+                                    <option value="aA_to_zZ">aA - zZ</option>
+                                    <option value="Aa_to_Zz">Aa - Zz</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div class="shop__product__option__right">
+                                <div>
+                                    <input type="checkbox" id="hideOutOfStockCheckbox" onchange="toggleOutOfStock()">
+                                    <label for="hideOutOfStockCheckbox">Hide Out of Stock</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <h3>New arrivals</h3><br><br>
+                    <div class="row">
+                        <!-- Product Cards Begin -->
+                        <% for (let product of newproducts) { %>
+                            <div class="col-lg-4 col-md-6 col-sm-6">
+                                <div class="product__item" style="margin-bottom: 30px;">
+                                    <a href="/products/<%= product._id %>">
+                                        <div class="product__item__pic set-bg" data-setbg="/images/product-images/<%= product.image[0] %>">
+                                        </div>
+                                    </a>
+                                    <div class="product__item__text">
+                                        <h6><%= product.name %></h6>
+                                        <% if (product.quantity > 0) { %>
+                                            <a href="#" onclick="" style="cursor: pointer;" class="add-cart">+ Add To Cart</a>
+                                        <% } else { %>
+                                            <span class="text-danger">Out of Stock</span>
+                                        <% } %>
+                                        <!-- Display average rating and render star icons -->
+                                        <div class="rating">
+                                            <%= product.averageRating %> <!-- Display average rating -->
+                                            <% for (let i = 0; i < Math.round(product.averageRating); i++) { %>
+                                                <i class="fas fa-star"></i> <!-- Solid star -->
+                                            <% } %> 
+                                            <% for (let i = Math.round(product.averageRating); i < 5; i++) { %>
+                                                <i class="far fa-star"></i> <!-- Empty star -->
+                                            <% } %>
+                                        </div>
+                                        <p class="mb-0"><del>₹ <%= product.price %></del></p>
+                                        <h5 class="mb-0">₹ <%= product.price - product.discount %> <span class="badge badge-success"> Save <%= product.discount %> </span></h5>
+                                    </div>
+                                    </div>
+                                </div>
+                                <!-- Product Cards End -->
+                            <% } %>
+                        </div>
+                        <br>
+                        <h3>Products</h3><br><br>
+                    <div class="row">
+                        <!-- Product Cards Begin -->
+                        <% for (let product of products) { %>
+                            <div class="col-lg-4 col-md-6 col-sm-6">
+                                <div class="product__item" style="margin-bottom: 30px;">
+                                    <a href="/products/<%= product._id %>">
+                                        <div class="product__item__pic set-bg" data-setbg="/images/product-images/<%= product.image[0] %>">
+                                        </div>
+                                    </a>
+                                    <div class="product__item__text">
+                                        <h6><%= product.name %></h6>
+                                        <% if (product.quantity > 0) { %>
+                                            <a href="#" onclick="" style="cursor: pointer;" class="add-cart">+ Add To Cart</a>
+                                        <% } else { %>
+                                            <span class="text-danger">Out of Stock</span>
+                                        <% } %>
+                                        <!-- Display average rating and render star icons -->
+                                        <div class="rating">
+                                            <%= product.averageRating %> <!-- Display average rating -->
+                                            <% for (let i = 0; i < Math.round(product.averageRating); i++) { %>
+                                                <i class="fas fa-star"></i> <!-- Solid star -->
+                                            <% } %> 
+                                            <% for (let i = Math.round(product.averageRating); i < 5; i++) { %>
+                                                <i class="far fa-star"></i> <!-- Empty star -->
+                                            <% } %>
+                                        </div>
+                                        <p class="mb-0"><del>₹ <%= product.price %></del></p>
+                                        <h5 class="mb-0">₹ <%= product.price - product.discount %> <span class="badge badge-success"> Save <%= product.discount %> </span></h5>
+                                    </div>
+                                    </div>
+                                    </div>
+                                <!-- Product Cards End -->
+                            <% } %>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="product__pagination">
+                                    <% if( currentPage !== 1 ) { %> 
+                                        <a href="/shop?page=1<% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>">1</a>
+                                    <% } %>
+                                    <% if( (currentPage > 3) ){ %>
+                                        <span>...</span>
+                                    <% } %>
+                                    <% if( currentPage > 2 ) { %>
+                                        <a href="/shop?page=<%= prevPage %><% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>"><%= prevPage %></a> 
+                                    <% } %>
+                                    <a href="/shop?page=<%= currentPage %><% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>" class="active"><%= currentPage %></a>
+                                    <% if( hasNextPage ) { %>
+                                        <a href="/shop?page=<%= nextPage %><% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>"><%= nextPage %></a> 
+                                    <% } %>
+                                    <% if( (lastPage - currentPage > 2) ){ %>
+                                        <span>...</span>
+                                    <% } %>    
+                                    <% if( nextPage !== lastPage && currentPage !== lastPage ) { %>
+                                        <a href="/shop?page=<%= lastPage %><% if (brand){%>&&brand=<%= brand %><% } %><% if (search){%>&search=<%= search %><% } %>"><%= lastPage %></a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Shop Section End -->
+        
+        <!-- Success Modal -->
+        <div class="modal fade top rounded-0" style="background-color: #000000a2;" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true" data-backdrop="true">
+            <div class="modal-dialog modal-dialog-centered modal-full-width modal-full-width" role="document">
+                <div class="modal-content rounded-0">
+                    <div class="modal-header bg-danger rounded-0">
+                        <h5 class="modal-title" id="successModalLabel">OOPS!!!</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Oops! It seems you've reached the maximum quantity of products available for purchase.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", async function () {
+        var urlParams = new URLSearchParams(window.location.search);
+        var catValue = urlParams.get('cat');
+        var brandValue = urlParams.get('brand');
+
+
+        // Get all the anchor elements inside the categories
+        var categoryLinks = document.querySelectorAll(".shop__sidebar__categories ul li a");
+
+
+        categoryLinks.forEach(function (link) {
+            var href = link.getAttribute("href");
+
+
+            // Check if the href attribute of the link matches the 'cat' value from the current URL or 'All' is selected by default
+            if (!catValue || (catValue && href.includes('cat=' + catValue))) {
+                // Change the color to black or any other desired style for category links
+                link.style.color = "black";
+            }
+        });
+
+
+        // Get all the anchor elements inside the brands
+        var brandLinks = document.querySelectorAll(".shop__sidebar__brand ul li a");
+
+
+        brandLinks.forEach(function (link) {
+            var href = link.getAttribute("href");
+
+
+            // Check if the href attribute of the link matches the 'brand' value from the current URL or 'All' is selected by default
+            if (!brandValue || (brandValue && href.includes('brand=' + brandValue))) {
+                // Change the color to black or any other desired style for brand links
+                link.style.color = "black";
+            }
+        });
+    });
+
+
+    function toggleOutOfStock() {
+    var hideOutOfStock = document.getElementById("hideOutOfStockCheckbox").checked;
+    // Redirect to the shop page with the updated hideOutOfStock query parameter
+    window.location.href = "/shop?hideOutOfStock=" + hideOutOfStock;
+}
+
+
+    async function addToCart(productId) {
+        try {
+            const response = await axios.post('/add-to-cart', { productId });
+            if (!response.data.login) {
+                return window.location.href = '/login';
+            }
+            if (response.data.outOfStock) {
+            // Handle out of stock scenario
+            alert("Product is out of stock!");
+            return;
+        }
+            if (response.data.newItem === true) {
+                const count = document.getElementById('cartCount');
+                currentCount = parseInt(count.innerHTML);
+                updatedCount = currentCount + 1;
+                count.innerHTML = updatedCount;
+                window.location.reload()
+
+
+                Swal.fire({
+                    title: 'Product Added to Cart',
+                    text: 'The selected product has been added to your cart.',
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'OK'
+                });
+            //     const count = document.getElementById('cartCount');
+            // currentCount = parseInt(count.innerHTML);
+            // updatedCount = currentCount + 1;
+            // count.innerHTML = updatedCount;
+            // window.location.reload();
+            }
+            else {
+            // Handle unexpected response status
+            console.error('Unexpected response status:', response.status);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!',
+            });
+        }
+        } catch (error) {
+            console.log(error.message);
+            Swal.fire({
+                    title: 'Product Added to Cart',
+                    text: 'The selected product has been added to your cart.',
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'OK'
+                });
+        }
+    }
+
+
+    function sortProductsByPrice(sortOrder) {
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        const params = new URLSearchParams(url.search);
+
+
+        if (sortOrder === 'low_to_high') {
+            params.set('sort', 'price_low_to_high');
+        } else if (sortOrder === 'high_to_low') {
+            params.set('sort', 'price_high_to_low');
+        }
+
+
+        window.location.href = '/shop?' + params.toString();
+    }
+
+
+    function sortProductsByName(sortOrder) {
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        const params = new URLSearchParams(url.search);
+
+
+        if (sortOrder === 'aA_to_zZ') {
+            params.set('sort', 'name_aA_to_zZ');
+        } else if (sortOrder === 'Aa_to_Zz') {
+            params.set('sort', 'name_Aa_to_Zz');
+        }
+
+
+        window.location.href = '/shop?' + params.toString();
+    }
+
+        </script>
+        
+        <%- include('../includes/userFooter.ejs') %>
+        <%- include('../includes/end.ejs')%>
+        

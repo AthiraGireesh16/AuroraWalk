@@ -1,0 +1,85 @@
+<%- include('../includes/admin/adminHead.ejs') %>
+<%- include('../includes/admin/adminNavbar.ejs') %>
+
+<style>
+   .container {
+        margin: 0 auto; /* This will center the container horizontally */
+        max-width: 800px; /* Adjust the maximum width as needed */
+        padding: 20px;
+        text-align: center; /* Center text within the container */
+    }
+
+    /* Style for the form */
+    form {
+        margin-bottom: 20px; /* Add margin to separate the form from the table */
+    }
+
+    /* Style for the dropdown */
+    select {
+        color: aliceblue;
+        padding: 10px; /* Adjust padding as needed */
+        font-size: 16px; /* Adjust font size as needed */
+        border: 1px solid #ccc; /* Add border */
+        border-radius: 5px; /* Add border radius */
+        background-color: #ffffff00; /* Add background color */
+        cursor: pointer; /* Change cursor to pointer on hover */
+        outline: none; /* Remove default outline */
+    }
+
+    /* Style for the dropdown arrow */
+    select::-ms-expand {
+        display: none; /* Hide default arrow for IE 11 */
+    }
+
+    select option {
+        background-color: #272525;
+        color: rgb(235, 235, 235); /* Add background color for options */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px; /* Add margin to separate the table from the form */
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #110f0f00;
+    }
+</style>
+
+<div class="container">
+    <h1>Best Selling</h1>
+    <form action="/admin/filter-best-selling" method="POST">
+        <select name="option" onchange="this.form.submit()">
+            <option value="" disabled selected>Select an option</option>
+            <option value="products" <%= selectedOption === 'products' ? 'selected' : '' %>>Best Selling Products</option>
+            <option value="categories" <%= selectedOption === 'categories' ? 'selected' : '' %>>Best Selling Categories</option>
+            <option value="brands" <%= selectedOption === 'brands' ? 'selected' : '' %>>Best Selling Brands</option>
+        </select>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Total Sales(Amount)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% data.forEach(item => { %>
+                <tr>
+                    <td><%= item.productName || item.categoryName || item.brandName %></td>
+                    <td><%= item.totalSales %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+

@@ -1,0 +1,297 @@
+<%- include('../includes/userHead.ejs') %>
+<%- include('../includes/userNavbar.ejs') %>
+
+<style>
+    .main-div {
+        display: flex;
+        justify-content: center;
+        margin-top: 50px;
+        margin-bottom: 50px;
+    }
+    .profile-container {
+        box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+    }
+    section {
+        width: 80%;
+    }
+    .edit-image {
+        text-decoration: none;
+    }
+    input {
+        border-radius: 0 !important;
+    }
+    input.form-control, textarea {
+        background-color: #fff;
+    }
+    input:disabled {
+        border: none;
+        background-color: #fff;
+        font-weight: bold;
+    }
+    .fs--1 a {
+        color: #7a7a7a;
+        padding: 10px;
+    }
+    .fs--1 a.active {
+        background-color: #7a7a7a;
+        color: #fff;
+    }
+    .fs--1 a:hover {
+        background-color: #7a7a7a;
+        color: white;
+    }
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: #212529;
+    }
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+    .table thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #dee2e6;
+    }
+    .table tbody + tbody {
+        border-top: 2px solid #dee2e6;
+    }
+    .star-rating {
+        display: flex;
+    }
+    .star {
+        cursor: pointer;
+        margin-right: 5px;
+        font-size: 1.5rem;
+        color: #343a40;
+        transition: color 0.3s;
+    }
+    input[type="checkbox"] {
+        display: none;
+    }
+    input[type="checkbox"]:checked + label {
+        color: gold;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #007bff;
+    }
+    .modal-title {
+        font-size: 1.5rem;
+        margin: 0;
+        color: #007bff;
+    }
+    .modal-body {
+        padding: 15px 0;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 15px;
+        border-top: 2px solid #007bff;
+    }
+    .btn-secondary, .btn-primary {
+        padding: 10px 20px;
+        margin-left: 10px;
+    }
+    .comment-label {
+        font-size: 1rem;
+        margin-bottom: 8px;
+        color: #343a40;
+    }
+    #comment {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: vertical;
+    }
+    .payment-details {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    max-width: 300px;
+    width: 100%; 
+    height: auto; 
+}
+    .payment-details h5 {
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+    .payment-details p {
+        margin: 5px 0;
+    }
+    .retry-payment-btn {
+        margin-top: 10px;
+    }
+</style>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<div class="main-div">
+    <section class="font-1">
+        <div class="row">
+            <div class="col-12 col-md-8">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th></th>
+                                <th>Name</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <% if(order.orderStatus === 'Delivered') { %>
+                                    <th>Rating</th>
+                                    <th>Review</th>
+                                <% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% for (let product of products) { %>
+                                <% var total = product.price * product.quantity %>
+                                <tr>
+                                    <td>
+                                        <a href="/products/<%= product.productId._id %>">
+                                        <img width="100" src="/images/product-images/<%= product.productId.image[0] %>" alt="">
+                                         </a>
+                                    </td>
+                                    <td><%= product.productId.name %></td>
+                                    <td><%= product.productId.brand.brand %></td>
+                                    <td>₹<%= product.price %></td>
+                                    <td><%= product.quantity %></td>
+                                    <td>₹<%= total %></td>
+                                    <% if(order.orderStatus === 'Delivered') { %>
+                                        <td>
+                                            <div class="star-rating">
+                                                <% for (let i = 1; i <= 5; i++) { %>
+                                                    <input type="checkbox" id="star<%= i %>_<%= product.productId._id %>" name="rating_<%= product.productId._id %>" value="<%= i %>"/>
+                                                    <label for="star<%= i %>_<%= product.productId._id %>" class="star">&#9733;</label>
+                                                <% } %>
+                                            </div>
+                                        </td> 
+                                        <td>
+                                            <a class="btn btn-secondary create-review-btn"
+                                                data-toggle="modal"
+                                                data-target="#createReviewModal"
+                                                data-product-id="<%= product.productId  %>"
+                                                onclick="setModalProductId('<%= product.productId._id %>');submitRating('<%= product.productId._id %>')">
+                                                Review
+                                            </a>
+                                        </td>
+                                    <% } %>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                    <div class="pt-2 d-flex justify-content-between">
+                        <a class="btn btn-outline-dark rounded-0" href="/user/orders">Back to orders</a>
+                        <% if(order.orderStatus === 'Pending') { %>
+                            <button class="btn btn-warning retry-payment-btn" onclick="retryPayment()">Retry Payment</button>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 payment-details mt-4 mt-md-0">
+                <h5><u>Payment Details</u></h5>
+                <p>Total Amount: ₹<%= order.totalPrice + order.discounted %></p>
+                <p>Discount: ₹<%= order.discounted %></p>
+                <p>Final Amount: ₹<%= order.totalPrice %></p>
+                <p>Payment Method: <%= order.paymentMethod %></p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function retryPayment() {
+        var options = {
+            "key": "<%= process.env.RAZORPAY_KEY_ID %>", 
+            "amount": "<%= order.totalPrice * 100 %>", 
+            "currency": "INR",
+            "name": "AuroraWalk",
+            "description": "Test Transaction",
+            "image": "/your_logo.png",
+            "order_id": "<%= order.razorpayOrderId %>", 
+            "handler": function (response) {
+                fetch('/confirm-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ paymentId: response.razorpay_payment_id }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/confirm-order';
+                    } else {
+                        alert('There was an issue confirming your order. Please contact support.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            },
+            "notes": {
+                "address": "AuroraWalk Womens Footwear"
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response) {
+            console.log('Payment failed:', response.error);
+            window.location = '/payment-failed';
+        });
+        rzp1.open();
+    }
+
+    function submitRating(productId) {
+        const rating = document.querySelector(`input[name="rating_${productId}"]:checked`).value;
+        const comment = document.getElementById("comment").value;
+
+        fetch(`/products/${productId}/rate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ rating, comment }),
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Rating submitted successfully');
+            } else {
+                console.error('Error:', response.statusText);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+<%- include('../includes/userFooter.ejs') %>
+<%- include('../includes/end.ejs') %>

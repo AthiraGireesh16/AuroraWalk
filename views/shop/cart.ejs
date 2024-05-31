@@ -1,0 +1,573 @@
+<%- include('../includes/userHead.ejs') %>
+<%- include('../includes/userNavbar.ejs') %>
+
+ 
+<style>
+    .shop-now a:hover{
+        color: #111;
+    }
+
+    .container-modal {
+    padding: 2rem 0rem;
+  }
+
+  .modal-dialog {
+    position: fixed;
+    top: auto;
+    left: auto;
+    right: 0.5rem;
+    bottom: 0;
+    margin-bottom: 0.5rem;
+    min-width: 300px;
+    max-width: 400px;
+    overflow-y: auto;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 210px);
+  }
+
+
+  
+
+  .notice {
+    padding: 0rem 1rem;
+
+    h4 {
+      margin-bottom: 1.5rem;
+    }
+
+    p {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .icon {
+    font-size: 3rem;
+  }
+
+</style>
+<section class="shopping-cart spad mt-5">
+    <div class="container">
+        <% if (cartItems && cartItems.items.length > 0) { %>
+            <div class="row" id="cart-table">
+                <div class="col-lg-8">
+                    <div class="shopping__cart__table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for (let item of cartItems.items) { %>
+                                    <% if (item.productId) { %>
+                                        <% var totalPrice = item.productId.price * item.quantity; %>
+                                        <% if (item.quantity > item.productId.quantity) { var quantity = item.productId.quantity; } else { var quantity = item.quantity; } %>
+                                        <tr id="cart-row-<%= item._id %>">
+                                            <td class="product__cart__item">
+                                                <div class="product__cart__item__pic">
+                                                    <a href="/products/<%= item.productId._id %>">
+                                                    <img src="/images/product-images/<%= item.productId.image[0] %>" width="100" alt="">
+                                                </a>
+                                                </div>
+                                                <div class="product__cart__item__text">
+                        
+                                                    <h6><%= item.productId.name %></h6>
+                                                    <del>
+                                                    <% if (item.productId.offer && !item.productId.category.offer) { 
+                                                        var discount = (item.productId.price * item.productId.offer.percentage / 100).toFixed(0);
+                                                    } else if (item.productId.category.offer && !item.productId.offer) {
+                                                        var discount = (item.productId.price * item.productId.category.offer.percentage / 100).toFixed(0);
+                                                    } else if (item.productId.category.offer && item.productId.offer) {
+                                                        if (item.productId.offer.percentage < item.productId.category.offer.percentage) {
+                                                            var discount = (item.productId.price * item.productId.category.offer.percentage / 100).toFixed(0);
+                                                        } else {
+                                                            var discount = (item.productId.price * item.productId.offer.percentage / 100).toFixed(0);
+                                                        }
+                                                    } %>
+                                                    <% if (item.productId.offer && !item.productId.category.offer) { %>
+                                                        <p class="mb-0"><del>₹ <%= item.productId.price %></del></p>
+                                                        <h5 id="price-<%= item.productId._id %>"><strong>₹ <%= item.productId.price - discount %> </strong><span class="badge badge-success"> Save ₹ <%= discount %> </span></h5>
+                                                    <% } else if (item.productId.category.offer && !item.productId.offer) { %>
+                                                        <p class="mb-0"><del>₹ <%= item.productId.price %></del></p>
+                                                        <h5 id="price-<%= item.productId._id %>"><strong> ₹ <%= item.productId.price - discount %></strong> <span class="badge badge-success"> Save ₹ <%= discount %> </span></h5>
+                                                    <% } else if (item.productId.category.offer && item.productId.offer) { %>
+                                                        <p class="mb-0"><del>₹ <%= item.productId.price %></del></p>
+                                                        <h5 id="price-<%= item.productId._id %>"></h5><strong>₹ <%= item.productId.price - discount %></strong> <span class="badge badge-success"> Save ₹ <%= discount %> </span></h5>
+                                                    <% } else { %>
+                                                        <h5 id="price-<%= item.productId._id %>"><strong><%= item.productId.price%></strong> </h5>
+                                                    <% } %></del>
+                                                    <h5 class="mb-0">₹ <%= item.productId.price - item.productId.discount %>  <span class="badge badge-success"> Save <%= item.productId.discount ? item.productId.discount : 0 %> </span></h5>
+                                                </div>
+                                            </td>
+                                            <% if (item.productId.quantity > 0) { %>
+                                                <td class="quantity__item">
+                                                    <div class="quantity">
+                                                        <div class="pro-qty-2">
+                                                            <span id="dec-<%= item.productId._id %>" onclick="decreaseCart('<%= item.productId._id %>')" class="fa fa-angle-left dec qtybtn"></span>
+                                                            <input id="qty-<%= item.productId._id %>" type="text" disabled value="<%= quantity %>">
+                                                            <span id="inc-<%= item.productId._id %>" onclick="addToCart('<%= item.productId._id %>')" class="fa fa-angle-right inc qtybtn"></span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td id="total-<%= item.productId._id %>" class="cart__price"></td>
+                                                <td class="cart__close"><i onclick="RemoveCart('<%= item._id %>')" style="cursor: pointer;" class="fa fa-close"></i></td>
+                                            <% } else { %>
+                                                <td id="stockOut"> <label onload="RemoveCart('<%= item._id %>')" class="text-danger fw-bold" for="">Out of Stock</label> </td>
+                                                <td></td>
+                                                <td class="cart__close"><i onclick="RemoveCart('<%= item._id %>')" style="cursor: pointer;" class="fa fa-close"></i></td>
+                                            <% } %>
+                                        </tr>
+                                    <% } %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="continue__btn">
+                                <a href="/shop">Continue Shopping</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="cart__discount">
+                        <h6>Discount Coupons</h6>
+                        <form id="coupon-form">
+                            <input id="coupon-input" type="text" placeholder="Coupon code">
+                            <!-- Hide the cancel button by default -->
+                            <button id="cancel" onclick="cancelCoupon(event)" style="display: none;">Cancel</button>
+                            <!-- Show the apply button by default -->
+                            <button onclick="applyCoupon(event)" id="apply">Apply</button>
+                        </form>
+                        <div id="coupon-message" class="coupon-message"></div>
+                    </div>
+                    
+                    <div class="container">
+                        <button type="button" class="btn btn-danger rounded-0 badge-dar mb-2" data-toggle="modal" data-target="#discountModal"    >
+                          Show Available coupons
+                        </button>  
+                      </div>
+                    <div class="cart__total">
+                        <h6>Cart total</h6>
+                        <ul>
+                            <% if (totalAmount && totalAmount.length > 0) { %>
+                                <li>Subtotal <span id="subtotal">₹ <%= totalAmount[0].total %></span></li>
+                            <% } else { %>
+                                <li>Subtotal <span id="subtotal">₹ 0</span></li>
+                            <% } %>
+                            <li>Coupon discount <span id="coupon-discount"><% if( discounted ) { %>- ₹ <%= discounted.discountAmount %> <% } else { %>₹ 0<% } %></span></li>
+                            <li>Total <span id="total"><% if( discounted ) { %>₹ <%= discounted.discountedTotal %><% } else { %>₹ <%= totalAmount && totalAmount.length > 0 ? totalAmount[0].total : 0 %><% } %></span></li>
+                       </ul>
+                        
+                            <a href="/checkout" class="primary-btn">Proceed to checkout</a>
+                       
+                        
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <div class="col-12 mt-5">
+                <h1 class="text-center"><b>Cart is empty...</b></h1>
+                <br>
+                <h3 class="text-center shop-now" ><a href="/shop">Shop now</a></h3>
+            </div>
+        <% } %>
+        <div style="display: none;" class="col-12 mt-5" id="empty-cart">
+            <h1 class="text-center"><b>Cart is empty...</b></h1>
+            <br>
+            <h3 class="text-center shop-now" ><a href="/shop">Shop now</a></h3>
+        </div>
+    </div>
+</section>
+
+
+
+<div class="modal fade top rounded-0" style="background-color: #000000a2;" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel"
+  aria-hidden="true" data-backdrop="true">
+  <div class="modal-dialog modal-dialog-centered modal-full-width modal-full-width" role="document">
+    <div class="modal-content rounded-0">
+      <div class="modal-header bg-danger rounded-0">
+        <h5 class="modal-title" id="successModalLabel">OOPS!!!</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Oops! It seems you've reached the maximum quantity of products available for purchase.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Coupon modal -->
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Font Awesome CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Discount Modal -->
+
+<!-- Discount Modal -->
+<div class="modal fade" id="discountModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-0">
+            
+            <% if( availableCoupons && availableCoupons.length > 0) { %>
+        <% for( coupon of availableCoupons ) { %>
+
+            <div class="modal-content rounded-0">
+                <div class="modal-body text-center">
+                    <div class="icon text-danger">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <div class="notice">
+                        <% if( coupon.discountType === 'percentage') { %>
+                            <h4>Get <%= coupon.discount %>% Discount</h4>
+                        <% } else if( coupon.discountType === 'fixed-amount' ) { %>
+                            <h4>Get ₹ <%= coupon.discount %> Discount</h4>
+                        <% } %>
+                        <p id="minimumAmount">This coupon only available for purchase above ₹ <%= coupon.minimumAmount %></p>
+                        <p>And valid from <%= moment(coupon.startingDate).format(shortDateFormat) %> to <%= moment(coupon.expiryDate).format(shortDateFormat) %> </p>
+                        <p>Use promo code <spans style="font-size: medium;" class="badge badge-info"><%= coupon.name %></span></p>
+                    </div>
+                    <div class="code"></div>
+                </div>
+            </div>
+        <% } %>
+        <% } %>
+      
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+<script>
+ 
+    document.addEventListener('DOMContentLoaded', () => {
+    const qtyInputs = document.querySelectorAll('input[id^="qty-"]');
+    qtyInputs.forEach((qtyInput) => {
+        const productId = qtyInput.id.split('-')[1];
+        const span = document.getElementById(`dec-${productId}`);
+        const quantity = parseInt(qtyInput.value);
+        if (quantity < 2) {
+            span.style.display = 'none';
+        }
+    });
+});
+
+
+
+const couponForm = document.getElementById('coupon-form');
+
+
+async function applyCoupon(event) {
+    event.preventDefault();
+    const couponminimum=document.getElementById('cou')
+    const totalCartPrice = document.getElementById('total');
+    const couponDiscount = document.getElementById('coupon-discount');
+    const total = Number(document.getElementById('total').innerHTML.split(" ")[1]);
+    const couponCode = document.getElementById('coupon-input').value.trim();
+    const invalidRegex = /[ .]/;
+
+    if (invalidRegex.test(couponCode) || couponCode === "") {
+        alert('Enter a valid Coupon name');
+        return;
+    }
+
+    const response = await axios.post('/apply-coupon', { couponCode, total });
+
+    if (response.data.success) {
+        const couponMessage = document.getElementById('coupon-message');
+        couponMessage.innerHTML = '<p>*Coupon applied</p>';
+      
+
+        // Hide the apply button and show the cancel button
+        document.getElementById('apply').style.display = 'none';
+        document.getElementById('cancel').style.display = 'block';
+        
+
+
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Coupon Applied',
+            text: 'Your coupon has been applied successfully!',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+            }
+        });
+
+        if (response.data.discounted) {
+            totalCartPrice.innerHTML = `₹ ${response.data.discounted.discountedTotal}`;
+            couponDiscount.innerHTML = `-₹ ${response.data.discounted.discountAmount}`;
+            
+        
+        }
+        if(response.data.coupona){
+            couponminimum.innerHTML=`${response.data.coupon}`
+        }
+       
+      
+        
+    } else {
+        
+        const couponMessage = document.getElementById('coupon-message');
+        couponMessage.innerHTML = `<p class="text-danger">${response.data.message}</p>`;
+    }
+}
+
+async function cancelCoupon(event) {
+    event.preventDefault();
+
+    
+    const confirmCancel = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, cancel it!'
+    });
+
+
+    if (confirmCancel.isConfirmed) {
+        const response = await axios.get('/cancelCoupon');
+        window.location.reload();
+
+        if (response.data.success) {
+            const couponMessage = document.getElementById('coupon-message');
+            couponMessage.innerHTML = `<p>${response.data.message}</p>`;
+
+
+           // document.getElementById('coupon-input').disabled = true;
+            //document.getElementById('apply').style.display = 'none'; // Hide Apply button
+            //document.getElementById('cancel').style.display = 'block'; // Show Cancel button
+            
+           // location.reload();
+        }
+    }
+}
+
+
+
+    const totalCartPrice = document.getElementById('total')
+
+    const subtotalCartPrice = document.getElementById('subtotal')
+    const cartTable = document.getElementById('cart-table')
+    const emptyCart = document.getElementById('empty-cart')
+    const stockOut = document.getElementById('stockOut')
+    
+    async function addToCart(productId) {
+    try {
+        const totalCartPrice = $('#total');
+        const subtotalCartPrice = $('#subtotal');
+        const couponDiscount = $('#coupon-discount');
+        const qty = $(`#qty-${productId}`);
+        const dec = $(`#dec-${productId}`);
+        const priceTag = $(`#price-${productId}`).text().split(' ');
+        const price = Number(priceTag[1]);
+
+        const response = await axios.post('/add-to-cart', { productId });
+        if (parseInt(qty.val()) >= 5) {
+            // alert("Oops! You can't add more than 5 products.");
+            // return;
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: "You can't add more than 5 products.",
+            });
+            return;
+        }
+        if (!response.data.login) {
+            return window.location.href = '/login';
+        }
+
+        if (response.data.outOfStock) {
+            Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: "This product is out of stock.",
+                });
+            return;
+        }
+
+        if (response.data.success) {
+            const currentQty = parseInt(qty.val());
+            const updatedQty = currentQty + 1;
+            const totalPrice = updatedQty * price;
+
+            updatedQty > 1 ? dec.show() : dec.hide();
+            
+            totalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+            subtotalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+
+            if (response.data.discounted) {
+                totalCartPrice.text(`₹ ${response.data.discounted.discountedTotal}`);
+                couponDiscount.text(`-₹ ${response.data.discounted.discountAmount}`);
+            } else {
+                totalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+            }
+            
+            qty.val(updatedQty);
+        }
+    } catch (error) {
+        console.log(error.status);
+    }
+}
+
+async function decreaseCart(productId) {
+    try {
+        const totalCartPrice = $('#total');
+        const subtotalCartPrice = $('#subtotal');
+        const couponDiscount = $('#coupon-discount');
+        const qty = $(`#qty-${productId}`);
+        const dec = $(`#dec-${productId}`);
+        const priceTag = $(`#price-${productId}`).text().split(' ');
+        const price = Number(priceTag[1]);
+        
+        const response = await axios.post('/decrease-cart', { productId });
+
+        if (subtotalCartPrice <= 0) {
+            window.location = '/cart';
+        }
+
+        if (response.data.success) {
+            const currentQty = parseInt(qty.val());
+            const updatedQty = currentQty - 1;
+
+            if (updatedQty < 2) {
+                dec.hide();
+            }
+
+            const totalPrice = updatedQty * price;
+            
+            totalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+            subtotalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+            qty.val(updatedQty);
+
+            if (response.data.discounted) {
+                totalCartPrice.text(`₹ ${response.data.discounted.discountedTotal}`);
+                couponDiscount.text(`-₹ ${response.data.discounted.discountAmount}`);
+            } else {
+                totalCartPrice.text(`₹ ${response.data.totalPrice[0].total}`);
+            }
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+async function RemoveCart(itemId) {
+    event.preventDefault();
+
+    const cancel = document.getElementById('cancel');
+    const isCouponApplied = cancel && cancel.style.display !== 'none'; // Check if cancel button is actually visible
+
+    if (isCouponApplied) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: 'If you want to increase or decrease the quantity or remove an item, please cancel the applied coupon.',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+        });
+    } else {
+        Swal.fire({
+            title: 'Remove Item',
+            text: 'Are you sure you want to remove this item from your cart?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, remove it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await axios.patch('/removeCartItem', { itemId });
+
+                    if (response.data.success) {
+                        const item = document.getElementById(`cart-row-${itemId}`);
+                        if (item) {
+                            item.style.display = 'none';
+                        }
+
+                        const count = document.getElementById('cartCount');
+                        if (count) {
+                            let currentCount = parseInt(count.innerHTML);
+                            let updatedCount = currentCount - 1 <= 0 ? 0 : currentCount - 1;
+                            count.innerHTML = updatedCount;
+
+                            if (updatedCount === 0) {
+                                document.getElementById('cart-table').style.display = 'none';
+                                document.getElementById('empty-cart').style.display = 'block';
+                            }
+                        }
+
+                        const subtotalCartPrice = document.getElementById('subtotal');
+                        const totalCartPrice = document.getElementById('total');
+                        const couponDiscount = document.getElementById('coupon-discount');
+
+                        if (response.data.totalPrice.length > 0) {
+                            subtotalCartPrice.innerHTML = `₹ ${response.data.totalPrice[0].total}`;
+
+                            if (response.data.discounted) {
+                                totalCartPrice.innerHTML = `₹ ${response.data.discounted.discountedTotal}`;
+                                couponDiscount.innerHTML = `-₹ ${response.data.discounted.discountAmount}`;
+                            } else {
+                                totalCartPrice.innerHTML = `₹ ${response.data.totalPrice[0].total}`;
+                            }
+                        } else {
+                            subtotalCartPrice.innerHTML = '₹ 0';
+                            totalCartPrice.innerHTML = '₹ 0';
+                            couponDiscount.innerHTML = '₹ 0';
+                        }
+
+                        Swal.fire({
+                            title: 'Removed',
+                            text: 'The item has been removed from your cart.',
+                            icon: 'success',
+                            confirmButtonColor: '#28a745'
+                        });
+                    } else {
+                        throw new Error('Failed to remove item from cart.');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'There was an error removing the item from your cart.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            }
+        });
+    }
+}
+          $(document).ready(function() {  
+              $('#discountModal').modal('show');
+            });
+            
+
+
+    
+</script>
+
+<%- include('../includes/userFooter.ejs') %>
+<%- include('../includes/end.ejs') %>

@@ -1,0 +1,143 @@
+<%- include('../includes/admin/adminHead.ejs') %>
+<%- include('../includes/admin/adminNavbar.ejs') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="content-container">
+  <section class="content-main">
+    <div class="row">
+      <div class="col-xl-12 col-lg-12">
+        <div class="card mb-4">
+          <article class="card-body">
+            <h5 class="card-title">Monthly Sales Statistics</h5>
+            <canvas id="monthlyChart" height="120px"></canvas>
+          </article>
+        </div>
+      </div>
+      <div class="col-xl-12 col-lg-12">
+        <div class="card mb-4">
+          <article class="card-body">
+            <h5 class="card-title">Daily Sales Statistics</h5>
+            <canvas id="dailyChart" height="120px"></canvas>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  window.onload = function () {
+    fetch('/admin/show-chart', {
+      method: 'post',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ msg: "hi" })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.monthlySalesData && data.dailySalesData) {
+        chart(data.monthlySalesData, data.dailySalesData);
+      } else {
+        console.error("Incomplete data received from server.");
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+  };
+
+  function chart(monthlySalesData, dailySalesData) {
+    const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+    const monthlyDataMap = new Map(monthlySalesData.map(item => [item._id.month, item.totalAmount]));
+    const monthlyDataFilled = allMonths.map(month => ({
+      month,
+      totalAmount: monthlyDataMap.get(month) || 0
+    }));
+
+    if ($('#monthlyChart').length) {
+      var monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+      var monthlyChart = new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+          labels: monthlyDataFilled.map(item => getMonthName(item.month)),
+          datasets: [{
+            label: 'Monthly Sales',
+            backgroundColor: 'rgba(44, 120, 220, 0.2)',
+            borderColor: 'rgba(44, 120, 220)',
+            data: monthlyDataFilled.map(item => item.totalAmount)
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              labels: {
+                usePointStyle: true
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function getMonthName(month) {
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      return months[month - 1];
+    }
+
+    if ($('#dailyChart').length) {
+      var dailyCtx = document.getElementById('dailyChart').getContext('2d');
+      var dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+          labels: getDailyLabels(dailySalesData),
+          datasets: [{
+            label: 'Daily Sales',
+            backgroundColor: 'rgba(44, 120, 220, 0.2)',
+            borderColor: 'rgba(44, 120, 220)',
+            data: dailySalesData.map(item => item.totalAmount)
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Date'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Sales Amount (₹)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                usePointStyle: true,
+              }
+            }
+          },
+        }
+      });
+    }
+
+    function getDailyLabels(dailySalesData) {
+      // Assuming dailySalesData is already filtered to only include data from the first of the month to the current date.
+      return dailySalesData.map(item => {
+        const date = new Date(2024, item._id.month - 1, item._id.day);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      });
+    }
+  }
+</script>
+
+<style>
+  .content-container {
+    margin-top: 3cm;
+  }
+</style>

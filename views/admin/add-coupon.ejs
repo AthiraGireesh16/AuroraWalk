@@ -1,0 +1,95 @@
+<%- include('../includes/admin/adminHead.ejs') %>
+<%- include('../includes/admin/adminNavbar.ejs') %>
+
+<div class="main-panel">
+  <div class="content-wrapper">
+    <div class="col-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Add Coupon</h4>
+
+          <!-- Form for adding coupon -->
+          <form id="coupon-form" class="forms-sample" action="/admin/add-coupon" method="POST">
+            <div class="form-group">
+              <label>Coupon name</label>
+              <input type="text" class="form-control" id="coupon-name" name="name" placeholder="Coupon name" required>
+            </div>
+            <div class="form-group">
+              <label>Coupon description</label>
+              <input type="text" class="form-control" id="coupon-description" name="description" placeholder="Coupon description" required>
+            </div>
+            <div class="form-group">
+              <label>Starting date</label>
+              <input type="date" class="form-control" id="Starting-date" name="startingDate" placeholder="Starting date" required oninput="validateStartingDate()">
+              <div id="date-validation-message" style="color: red;"></div>
+            </div>
+            <div class="form-group">
+              <label>Expiry date</label>
+              <input type="date" class="form-control" id="expiry-date" name="expiryDate" placeholder="Expiry date" required oninput="validateExpiryDate()">
+              <div id="expiry-validation-message" style="color: red;"></div>
+            </div>
+            <div class="form-group">
+              <label>Minimum amount</label>
+              <input type="number" class="form-control" id="minimum-amount" name="minimumAmount" placeholder="Minimum amount" required>
+            </div>
+            <div class="form-group">
+              <label for="discount-type">Discount type</label>
+              <select class="form-control" name="discountType" id="discount-type" required>
+                <option value="percentage">Percentage</option>
+                <option value="fixed-amount">Fixed amount</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Discount</label>
+              <input type="number" class="form-control" id="discount" name="discount" placeholder="Discount" required>
+            </div>
+            <button type="submit" class="btn btn-primary mr-2">Submit</button>
+            <a href="/admin/coupons"><button type="button" class="btn btn-secondary mr-2">Cancel</button></a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Check if the error flag is present in the URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('error') && urlParams.get('error') === 'coupon-exists') {
+    alert('Coupon name already exists');
+  }
+
+  function validateStartingDate() {
+    const startingDateInput = document.getElementById('Starting-date');
+    const validationMessage = document.getElementById('date-validation-message');
+    const selectedDate = new Date(startingDateInput.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+    if (selectedDate < today) {
+      validationMessage.textContent = 'Starting date must be today or in the future.';
+      startingDateInput.setCustomValidity('Invalid');
+    } else {
+      validationMessage.textContent = '';
+      startingDateInput.setCustomValidity('');
+    }
+  }
+
+  function validateExpiryDate() {
+    const expiryDateInput = document.getElementById('expiry-date');
+    const validationMessage = document.getElementById('expiry-validation-message');
+    const selectedDate = new Date(expiryDateInput.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to the beginning of the day
+
+    if (selectedDate <= today) {
+      validationMessage.textContent = 'Expiry date must be greater than today.';
+      expiryDateInput.setCustomValidity('Invalid');
+    } else {
+      validationMessage.textContent = '';
+      expiryDateInput.setCustomValidity('');
+    }
+  }
+</script>
+
+
