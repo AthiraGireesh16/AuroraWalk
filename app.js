@@ -30,7 +30,6 @@ app.use(session({
 app.use(flash());
 
 
-
 const shortDateFormat = 'MMM Do YY';
 app.locals.moment = moment;
 app.locals.shortDateFormat = shortDateFormat;
