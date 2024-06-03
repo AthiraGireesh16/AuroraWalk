@@ -200,7 +200,7 @@ async function submitForm() {
     }
 }
 function razorpayPayment(order) {
-    const rzp_key = 'rzp_test_bMQJEGBUy2qfjY';
+    const rzp_key = '<%= process.env.RAZORPAY_KEY_ID %>';
 
     var options = {
         "key": rzp_key, 
