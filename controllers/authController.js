@@ -7,6 +7,7 @@ const Order = require('../model/orderModel')
 const Category = require('../model/categoryModel')
 const flash = require('connect-flash');
 const Swal = require('sweetalert2')
+const isAuth = require('../middleware/isAuth')
 const verificationController = require('../controllers/verificationController');
 const { longFormatters } = require('date-fns');
 
@@ -20,12 +21,15 @@ module.exports={
             console.log(error);
         }
     },
-    getHome:async(req,res)=>{
-            try{
-                res.render('shop/home')
-            }catch(error){
-                console.log(error)
-            }
+    getHome: async (req, res) => {
+        try {
+            isAuth.userAuth(req, res, () => {
+                const userLoggedin = req.session.user;
+                res.render('shop/home');
+            });
+        } catch (error) {
+            console.log(error);
+        }
     },
     getUserLogin:async(req,res)=>{
         try{

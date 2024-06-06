@@ -160,7 +160,7 @@ module.exports = {
            // console.log(relatedProducts);
             res.render('shop/single-product', {
                 product,
-                //breadcrumbs,
+                userLoggedin : req.session.user,
                 relatedProducts
             });
         } catch(error) {

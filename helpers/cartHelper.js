@@ -4,7 +4,7 @@ const orderSchema = require('../model/orderModel')
 const mongoose = require('mongoose');
 async function calculateOrderedQuantity(productId){
     try{
-         // Fetch orders where the product ID matches and sum up the quantities
+         // %fetch orders where the product ID matches and sum up the quantities
          const orders = await orderSchema.find({productId: productId});
          let totalOrderedQuantity = 0;
          orders.forEach(order=>{
