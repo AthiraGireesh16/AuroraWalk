@@ -1,6 +1,9 @@
 <%- include('../includes/userHead.ejs') %>
-<%- include('../includes/userNavbar.ejs') %>
-
+<% if (userLoggedin) { %>
+    <%- include('../includes/userNavbar.ejs') %>
+<% } else { %>
+    <%- include('../includes/guestNavbar.ejs') %>
+<% } %>
 <style>
 /* Add this to your existing CSS or in a style tag within your HTML */
 .pro-details {

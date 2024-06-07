@@ -11,6 +11,7 @@ const wishlistController = require('../controllers/wishlistController')
 
 // router.get('/', shopController.getHome);
 router.get('/shop',shopController.getShop);
+router.get('/guestShop',shopController.getGuestShop);
 router.get('/products/:id',shopController.getSingleProduct);
 
 router.get('/products/:productId', shopController.getRelatedProducts);
